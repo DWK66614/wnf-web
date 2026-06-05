@@ -1622,7 +1622,6 @@
                 <a class="nav-item" data-nav="research">科研中心</a>
                 <a class="nav-item" data-nav="platform">Aethelis™ 平台</a>
                 <a class="nav-item" data-nav="products">产品目录</a>
-                <a class="nav-item" data-nav="purchase">采购系统</a>
                 <a class="nav-item" data-nav="contact">合作咨询</a>
             </div>
         </div>
@@ -1806,7 +1805,7 @@
                         <div class="product-img">⚡❄️<div class="prod-stripe"></div></div>
                         <div class="product-info">
                             <div class="product-title">冰毒</div>
-                            <div class="product-desc">高灵敏度荧光探针，适用于神经科学成像研究 (仅供实验室使用)。</div>
+                            <div class="product-desc">高纯度，接近95%</div>
                             <div class="product-price">¥2,890 <small>/ 克</small></div>
                             <div class="cart-control">
                                 <div class="qty-selector">
@@ -1870,58 +1869,6 @@
             </div>
         </div>
 
-        <!-- ============ ORDER ============ -->
-        <div class="section" id="purchase">
-            <div class="container">
-                <div class="order-section reveal">
-                    <h2>📋 批量采购询价单</h2>
-                    <p>请填写采购信息，销售工程师将在1个工作日内与您联系。</p>
-                    <form id="orderForm">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>公司/机构名称 *</label>
-                                <input type="text" id="companyName" placeholder="例：某生物医药研究院" value="">
-                            </div>
-                            <div class="form-group">
-                                <label>联系人姓名 *</label>
-                                <input type="text" id="contactName" placeholder="姓名" value="">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>联系电话 *</label>
-                                <input type="text" id="phone" placeholder="手机/固话" value="">
-                            </div>
-                            <div class="form-group">
-                                <label>电子邮箱 *</label>
-                                <input type="email" id="email" placeholder="example@domain.com" value="">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>收货地址</label>
-                                <input type="text" id="address" placeholder="详细地址" value="">
-                            </div>
-                            <div class="form-group">
-                                <label>期望交付方式</label>
-                                <select id="delivery">
-                                    <option>顺丰快递</option>
-                                    <option>专人冷链</option>
-                                    <option>自提</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>附加留言/规格说明</label>
-                                <textarea rows="2" id="remarks" placeholder="如需特殊包装或定制需求..."></textarea>
-                            </div>
-                        </div>
-                        <button type="button" id="finalOrderBtn" class="submit-order-btn">✓ 提交采购意向</button>
-                    </form>
-                </div>
-            </div>
-        </div>
     </main>
 
     <!-- FOOTER -->
@@ -2281,10 +2228,10 @@
 // ================================================================
 (function(){
     const products = {
-        prodA: { name: "冰毒", price: 2890, qty: 1 },
-        prodB: { name: "摇头丸", price: 5250, qty: 1 },
-        prodC: { name: "PsyCore", price: 4300, qty: 1 },
-        prodD: { name: "Zenther", price: 6780, qty: 1 }
+        prodA: { name: "冰毒", enName: "Methamphetamine", price: 2890, qty: 1 },
+        prodB: { name: "摇头丸", enName: "Ecstasy", price: 5250, qty: 1 },
+        prodC: { name: "PsyCore", enName: "PsyCore", price: 4300, qty: 1 },
+        prodD: { name: "Zenther", enName: "Zenther", price: 6780, qty: 1 }
     };
     function closeModal() {
         const overlay = document.getElementById('customModal');
@@ -2341,7 +2288,40 @@
     function quickBuyHandler(pid) {
         const item = products[pid]; if(!item) return;
         const total = item.price * item.qty;
-        showModal(`<div><strong>${item.name}</strong> x ${item.qty}</div><div style="font-size:1.2rem;font-weight:800;">预估金额: ¥${total.toFixed(2)}</div><div class="order-detail-line" style="margin-top:14px;">销售代表将尽快与您确认订单。</div>`, () => showInfoModal("✅ 询价请求已发送至王尼冯商务团队。<br>"));
+        showModal(`<div><strong>${item.name}</strong> x ${item.qty}</div><div style="font-size:1.2rem;font-weight:800;">预估金额: ¥${total.toFixed(2)}</div><div class="order-detail-line" style="margin-top:14px;">销售代表将尽快与您确认订单。</div>`, null);
+        // Override confirm button to show QR code
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        if (!confirmBtn) return;
+        const nc = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(nc, confirmBtn);
+        nc.onclick = function() {
+            const qrText = `Payment successful!\n=====Product=====\n1-${item.enName}-x${item.qty}-${item.price}¥/g\n=============\nTotal price: ${total}¥`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrText)}`;
+            const modalBody = document.getElementById('modalBody');
+            const modalTitle = document.getElementById('modalTitle');
+            const footerDiv = document.querySelector('#customModal .modal-footer');
+            if (modalTitle) modalTitle.textContent = 'Payment QR Code';
+            if (footerDiv) footerDiv.style.display = 'flex';
+            if (modalBody) modalBody.innerHTML = `
+                <div style="text-align:center;padding:0.5rem 0;">
+                    <p style="color:var(--ink-secondary);font-size:0.84rem;margin-bottom:1rem;font-weight:500;">Scan with WeChat to view order details</p>
+                    <div style="background:white;display:inline-block;padding:12px;border:3px solid var(--border-hard);border-radius:var(--radius-sm);box-shadow:var(--shadow-brutal-sm);">
+                        <img src="${qrUrl}" alt="Payment QR Code" style="display:block;width:220px;height:220px;" onerror="this.parentElement.innerHTML='<div style=\\'padding:40px 20px;color:var(--accent-coral);font-weight:600;\\'>QR Code failed to load.<br>Please check your network.</div>'" />
+                    </div>
+                    <div style="margin-top:1rem;font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-muted);background:var(--bg-primary);padding:0.8rem;border-radius:var(--radius-sm);border:2px solid var(--border-hard);text-align:left;white-space:pre-line;line-height:1.6;">${qrText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                </div>
+            `;
+            // Update buttons
+            const cfm = document.getElementById('modalConfirmBtn');
+            if (cfm) {
+                const nc2 = cfm.cloneNode(true);
+                cfm.parentNode.replaceChild(nc2, cfm);
+                nc2.textContent = 'Done';
+                nc2.onclick = function() { closeModal(); };
+            }
+            const cancelBtn = document.getElementById('modalCancelBtn');
+            if (cancelBtn) cancelBtn.style.display = 'none';
+        };
     }
     function bindQuickBuyButtons() { document.querySelectorAll('.quickBuy').forEach(btn => btn.addEventListener('click', () => quickBuyHandler(btn.getAttribute('data-id')))); }
     function buildOrderSummaryForModal() {
@@ -2366,8 +2346,7 @@
             research: 'research',
             platform: 'platform',
             products: 'products',
-            purchase: 'purchase',
-            contact: 'purchase'
+            contact: 'products'
         };
         const targetId = targetMap[nav];
         if (targetId) {
@@ -2381,14 +2360,14 @@
     })); }
     function bindFinalSubmit() { const btn = document.getElementById('finalOrderBtn'); if(btn) btn.addEventListener('click', openFinalOrderModal); const form = document.getElementById('orderForm'); if(form) form.addEventListener('submit', (e)=> { e.preventDefault(); openFinalOrderModal(); }); }
     function syncInitQtys() { for(let id in products) updateQtyDisplay(id); }
-    bindQuantityEvents(); bindQuickBuyButtons(); bindFinalSubmit(); syncInitQtys(); initNavbar();
+    bindQuantityEvents(); bindQuickBuyButtons(); syncInitQtys(); initNavbar();
 })();
 
 // ================================================================
 // SCROLL SPY – Auto-update nav active state on scroll
 // ================================================================
 (function() {
-    const sections = ['home','research','platform','products','purchase'];
+    const sections = ['home','research','platform','products'];
     const navItems = document.querySelectorAll('.nav-item');
     if (!navItems.length || !sections.length) return;
 
